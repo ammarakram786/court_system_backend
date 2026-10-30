@@ -13,13 +13,13 @@ class UserAdmin(BaseUserAdmin):
         'organization', 'role', 'profile_status', 'is_staff', 'is_active'
     )
     list_filter = ('profile_status', 'is_staff', 'is_active', 'organization', 'role', 'rank')
-    search_fields = ('username', 'name', 'svc_number', 'email')
+    search_fields = ('username', 'name', 'svc_number')
     ordering = ('username',)
     filter_horizontal = ('groups', 'user_permissions')
 
     fieldsets = (
         (None, {'fields': ('username', 'password')}),
-        ('Personal info', {'fields': ('name', 'email', 'svc_number', 'rank', 'appointment', 'profile_image')}),
+        ('Personal info', {'fields': ('name', 'svc_number', 'rank', 'appointment', 'profile_image')}),
         ('Organization & Role', {'fields': ('organization', 'role', 'profile_status')}),
         ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Important dates', {'fields': ('last_login', 'created_at', 'updated_at')}),

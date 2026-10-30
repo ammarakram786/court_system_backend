@@ -37,7 +37,6 @@ class UserSerializer(serializers.ModelSerializer):
             'user_id',
             'username',
             'name',
-            'email',
             'profile_status',
             'svc_number',
             'rank',

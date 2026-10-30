@@ -125,7 +125,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         related_name='users',
         db_column='role_id'
     )
-    email = models.EmailField(blank=True, null=True)
     profile_image = models.CharField(max_length=500, blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
