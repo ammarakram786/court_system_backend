@@ -21,6 +21,7 @@ class Organization(models.Model):
     code = models.CharField(max_length=50, unique=True, db_index=True)
     org_level = models.PositiveIntegerField(default=1)
     is_active = models.BooleanField(default=True)
+    is_root = models.BooleanField(default=False, editable=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -30,8 +31,8 @@ class Organization(models.Model):
         ordering = ['org_level', 'name']
         constraints = [
             models.UniqueConstraint(
-                fields=['parent_organization'],
-                condition=models.Q(parent_organization__isnull=True),
+                fields=['is_root'],
+                condition=models.Q(is_root=True),
                 name='unique_single_root_organization'
             )
         ]
@@ -46,13 +47,23 @@ class Organization(models.Model):
                 raise ValidationError(
                     _("Only one root organization is allowed. Please specify a parent organization.")
                 )
+        elif self.pk:
+            if self.parent_organization_id == self.pk:
+                raise ValidationError(_("An organization cannot be its own parent."))
+            curr = self.parent_organization
+            while curr:
+                if curr.pk == self.pk:
+                    raise ValidationError(_("Circular organization hierarchy detected."))
+                curr = curr.parent_organization
 
     def save(self, *args, **kwargs):
-        self.full_clean()
         if self.parent_organization:
             self.org_level = self.parent_organization.org_level + 1
+            self.is_root = False
         else:
             self.org_level = 1
+            self.is_root = True
+        self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):

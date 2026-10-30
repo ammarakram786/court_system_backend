@@ -49,7 +49,12 @@ def case_party_create(*, case: Case, party_side: str, party_name: str, is_primar
     )
 
 @transaction.atomic
-def case_proceeding_create(*, case: Case, court: Court, sr_no: int, proceeding_date, stage: str, **kwargs) -> CaseProceeding:
+def case_proceeding_create(*, case: Case, court: Court, sr_no: int = None, proceeding_date, stage: str, **kwargs) -> CaseProceeding:
+    if sr_no is None:
+        from django.db.models import Max
+        max_sr = CaseProceeding.objects.filter(case=case).aggregate(Max('sr_no'))['sr_no__max'] or 0
+        sr_no = max_sr + 1
+
     proceeding = CaseProceeding.objects.create(
         case=case,
         court=court,
@@ -62,9 +67,6 @@ def case_proceeding_create(*, case: Case, court: Court, sr_no: int, proceeding_d
         case.status = Case.CaseStatus.DECIDED
         case.decision_date = proceeding_date
         case.save(update_fields=['status', 'decision_date', 'updated_at'])
-    elif proceeding.next_proceeding_date:
-        # Update case next hearing if applicable or tracked
-        pass
     return proceeding
 
 def cause_list_create(*, court: Court, cause_list_date, day_of_week: str) -> CauseList:

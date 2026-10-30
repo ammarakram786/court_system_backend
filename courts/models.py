@@ -171,7 +171,9 @@ class CaseProceeding(models.Model):
         verbose_name = 'Case Proceeding'
         verbose_name_plural = 'Case Proceedings'
         ordering = ['case', 'sr_no']
-        unique_together = ('case', 'sr_no')
+        constraints = [
+            models.UniqueConstraint(fields=['case', 'sr_no'], name='unique_case_proceeding_sr_no')
+        ]
 
     def __str__(self):
         return f"Proceeding #{self.sr_no} for Case {self.case.case_number} on {self.proceeding_date}"
@@ -186,7 +188,9 @@ class CauseList(models.Model):
 
     class Meta:
         db_table = 'cause_lists'
-        unique_together = ('court', 'cause_list_date')
+        constraints = [
+            models.UniqueConstraint(fields=['court', 'cause_list_date'], name='unique_court_cause_list_date')
+        ]
 
     def __str__(self):
         return f"Cause List for {self.court} on {self.cause_list_date}"
@@ -203,7 +207,9 @@ class CauseListItem(models.Model):
     class Meta:
         db_table = 'cause_list_items'
         ordering = ['roster_sr_no']
-        unique_together = ('cause_list', 'roster_sr_no')
+        constraints = [
+            models.UniqueConstraint(fields=['cause_list', 'roster_sr_no'], name='unique_cause_list_roster_sr_no')
+        ]
 
     def __str__(self):
         return f"Roster #{self.roster_sr_no} - Case {self.case.case_number}"

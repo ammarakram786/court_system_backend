@@ -1,0 +1,4999 @@
+openapi: 3.0.3
+info:
+  title: Pakistan Court & Case Management API (Modular Monolith)
+  version: 1.0.0
+  description: REST API for Organizational Structure, RBAC, Users, and Court/Case
+    Proceedings System.
+paths:
+  /api/health/:
+    get:
+      operationId: api_health_retrieve
+      description: Production health check verifying database connectivity and service
+        status.
+      summary: Health check endpoint
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/appointments/:
+    get:
+      operationId: api_v1_appointments_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAppointmentList'
+          description: ''
+    post:
+      operationId: api_v1_appointments_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+  /api/v1/appointments/{appointment_id}/:
+    get:
+      operationId: api_v1_appointments_retrieve
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Appointment.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+    put:
+      operationId: api_v1_appointments_update
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Appointment.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Appointment'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+    patch:
+      operationId: api_v1_appointments_partial_update
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Appointment.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointment'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointment'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAppointment'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+          description: ''
+    delete:
+      operationId: api_v1_appointments_destroy
+      parameters:
+      - in: path
+        name: appointment_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Appointment.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/auth/token/:
+    post:
+      operationId: api_v1_auth_token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenObtainPair'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenObtainPair'
+          description: ''
+  /api/v1/auth/token/refresh/:
+    post:
+      operationId: api_v1_auth_token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefresh'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/case-categories/:
+    get:
+      operationId: api_v1_case_categories_list
+      parameters:
+      - in: query
+        name: nature
+        schema:
+          type: string
+          enum:
+          - CIVIL
+          - CRIMINAL
+        description: |-
+          * `CIVIL` - Civil
+          * `CRIMINAL` - Criminal
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCaseCategoryList'
+          description: ''
+    post:
+      operationId: api_v1_case_categories_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseCategory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CaseCategory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CaseCategory'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseCategory'
+          description: ''
+  /api/v1/case-categories/{category_id}/:
+    get:
+      operationId: api_v1_case_categories_retrieve
+      parameters:
+      - in: path
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Category.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseCategory'
+          description: ''
+    put:
+      operationId: api_v1_case_categories_update
+      parameters:
+      - in: path
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Category.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseCategory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CaseCategory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CaseCategory'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseCategory'
+          description: ''
+    patch:
+      operationId: api_v1_case_categories_partial_update
+      parameters:
+      - in: path
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Category.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCaseCategory'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCaseCategory'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCaseCategory'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseCategory'
+          description: ''
+    delete:
+      operationId: api_v1_case_categories_destroy
+      parameters:
+      - in: path
+        name: category_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Category.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/case-parties/:
+    get:
+      operationId: api_v1_case_parties_list
+      parameters:
+      - in: query
+        name: case
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: is_primary_party
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: party_side
+        schema:
+          type: string
+          enum:
+          - PETITIONER
+          - RESPONDENT
+          - STATE
+        description: |-
+          * `PETITIONER` - Petitioner / Appellant
+          * `RESPONDENT` - Respondent / Defendant
+          * `STATE` - The State / Prosecution
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCasePartyList'
+          description: ''
+    post:
+      operationId: api_v1_case_parties_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseParty'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CaseParty'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CaseParty'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseParty'
+          description: ''
+  /api/v1/case-parties/{party_id}/:
+    get:
+      operationId: api_v1_case_parties_retrieve
+      parameters:
+      - in: path
+        name: party_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Party.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseParty'
+          description: ''
+    put:
+      operationId: api_v1_case_parties_update
+      parameters:
+      - in: path
+        name: party_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Party.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseParty'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CaseParty'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CaseParty'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseParty'
+          description: ''
+    patch:
+      operationId: api_v1_case_parties_partial_update
+      parameters:
+      - in: path
+        name: party_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Party.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCaseParty'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCaseParty'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCaseParty'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseParty'
+          description: ''
+    delete:
+      operationId: api_v1_case_parties_destroy
+      parameters:
+      - in: path
+        name: party_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Party.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/case-proceedings/:
+    get:
+      operationId: api_v1_case_proceedings_list
+      parameters:
+      - in: query
+        name: case
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: court
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: is_case_decided
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: proceeding_date_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: proceeding_date_before
+        schema:
+          type: string
+          format: date
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: stage
+        schema:
+          type: string
+      - in: query
+        name: stage__icontains
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCaseProceedingList'
+          description: ''
+    post:
+      operationId: api_v1_case_proceedings_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseProceeding'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CaseProceeding'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CaseProceeding'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseProceeding'
+          description: ''
+  /api/v1/case-proceedings/{proceeding_id}/:
+    get:
+      operationId: api_v1_case_proceedings_retrieve
+      parameters:
+      - in: path
+        name: proceeding_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Proceeding.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseProceeding'
+          description: ''
+    put:
+      operationId: api_v1_case_proceedings_update
+      parameters:
+      - in: path
+        name: proceeding_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Proceeding.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CaseProceeding'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CaseProceeding'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CaseProceeding'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseProceeding'
+          description: ''
+    patch:
+      operationId: api_v1_case_proceedings_partial_update
+      parameters:
+      - in: path
+        name: proceeding_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Proceeding.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCaseProceeding'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCaseProceeding'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCaseProceeding'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CaseProceeding'
+          description: ''
+    delete:
+      operationId: api_v1_case_proceedings_destroy
+      parameters:
+      - in: path
+        name: proceeding_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case Proceeding.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/cases/:
+    get:
+      operationId: api_v1_cases_list
+      parameters:
+      - in: query
+        name: assigned_case_officer
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: category
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: court
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: fir_number
+        schema:
+          type: string
+      - in: query
+        name: fir_number__icontains
+        schema:
+          type: string
+      - in: query
+        name: fir_year
+        schema:
+          type: integer
+      - in: query
+        name: institution_date_after
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: institution_date_before
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: managing_organization
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: police_station
+        schema:
+          type: string
+          format: uuid
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - CONSIGNED
+          - DECIDED
+          - DISPOSED
+          - PENDING
+          - TRANSFERRED
+        description: |-
+          * `PENDING` - Pending
+          * `DECIDED` - Decided
+          * `DISPOSED` - Disposed
+          * `TRANSFERRED` - Transferred
+          * `CONSIGNED` - Consigned to Record
+      - in: query
+        name: status__in
+        schema:
+          type: array
+          items:
+            type: string
+        description: Multiple values may be separated by commas.
+        explode: false
+        style: form
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCaseList'
+          description: ''
+    post:
+      operationId: api_v1_cases_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Case'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Case'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Case'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+          description: ''
+  /api/v1/cases/{case_id}/:
+    get:
+      operationId: api_v1_cases_retrieve
+      parameters:
+      - in: path
+        name: case_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+          description: ''
+    put:
+      operationId: api_v1_cases_update
+      parameters:
+      - in: path
+        name: case_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Case'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Case'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Case'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+          description: ''
+    patch:
+      operationId: api_v1_cases_partial_update
+      parameters:
+      - in: path
+        name: case_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCase'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCase'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCase'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+          description: ''
+    delete:
+      operationId: api_v1_cases_destroy
+      parameters:
+      - in: path
+        name: case_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/cases/{case_id}/close/:
+    post:
+      operationId: api_v1_cases_close_create
+      parameters:
+      - in: path
+        name: case_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Case'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Case'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Case'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+          description: ''
+  /api/v1/cases/{case_id}/parties/:
+    get:
+      operationId: api_v1_cases_parties_retrieve
+      parameters:
+      - in: path
+        name: case_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+          description: ''
+    post:
+      operationId: api_v1_cases_parties_create
+      parameters:
+      - in: path
+        name: case_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Case'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Case'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Case'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+          description: ''
+  /api/v1/cases/{case_id}/proceedings/:
+    get:
+      operationId: api_v1_cases_proceedings_retrieve
+      parameters:
+      - in: path
+        name: case_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+          description: ''
+    post:
+      operationId: api_v1_cases_proceedings_create
+      parameters:
+      - in: path
+        name: case_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Case.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Case'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Case'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Case'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Case'
+          description: ''
+  /api/v1/cause-list-items/:
+    get:
+      operationId: api_v1_cause_list_items_list
+      parameters:
+      - in: query
+        name: case
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: cause_list
+        schema:
+          type: string
+          format: uuid
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCauseListItemList'
+          description: ''
+    post:
+      operationId: api_v1_cause_list_items_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CauseListItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CauseListItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CauseListItem'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CauseListItem'
+          description: ''
+  /api/v1/cause-list-items/{item_id}/:
+    get:
+      operationId: api_v1_cause_list_items_retrieve
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cause list item.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CauseListItem'
+          description: ''
+    put:
+      operationId: api_v1_cause_list_items_update
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cause list item.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CauseListItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CauseListItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CauseListItem'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CauseListItem'
+          description: ''
+    patch:
+      operationId: api_v1_cause_list_items_partial_update
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cause list item.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCauseListItem'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCauseListItem'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCauseListItem'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CauseListItem'
+          description: ''
+    delete:
+      operationId: api_v1_cause_list_items_destroy
+      parameters:
+      - in: path
+        name: item_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cause list item.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/cause-lists/:
+    get:
+      operationId: api_v1_cause_lists_list
+      parameters:
+      - in: query
+        name: cause_list_date
+        schema:
+          type: string
+          format: date
+      - in: query
+        name: court
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: day_of_week
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCauseListList'
+          description: ''
+    post:
+      operationId: api_v1_cause_lists_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CauseList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CauseList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CauseList'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CauseList'
+          description: ''
+  /api/v1/cause-lists/{cause_list_id}/:
+    get:
+      operationId: api_v1_cause_lists_retrieve
+      parameters:
+      - in: path
+        name: cause_list_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cause list.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CauseList'
+          description: ''
+    put:
+      operationId: api_v1_cause_lists_update
+      parameters:
+      - in: path
+        name: cause_list_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cause list.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CauseList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CauseList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CauseList'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CauseList'
+          description: ''
+    patch:
+      operationId: api_v1_cause_lists_partial_update
+      parameters:
+      - in: path
+        name: cause_list_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cause list.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCauseList'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCauseList'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCauseList'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CauseList'
+          description: ''
+    delete:
+      operationId: api_v1_cause_lists_destroy
+      parameters:
+      - in: path
+        name: cause_list_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this cause list.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/cause-lists/today/:
+    get:
+      operationId: api_v1_cause_lists_today_retrieve
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CauseList'
+          description: ''
+  /api/v1/courts/:
+    get:
+      operationId: api_v1_courts_list
+      parameters:
+      - in: query
+        name: district
+        schema:
+          type: string
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedCourtList'
+          description: ''
+    post:
+      operationId: api_v1_courts_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Court'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Court'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Court'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+          description: ''
+  /api/v1/courts/{court_id}/:
+    get:
+      operationId: api_v1_courts_retrieve
+      parameters:
+      - in: path
+        name: court_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Court.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+          description: ''
+    put:
+      operationId: api_v1_courts_update
+      parameters:
+      - in: path
+        name: court_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Court.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Court'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Court'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Court'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+          description: ''
+    patch:
+      operationId: api_v1_courts_partial_update
+      parameters:
+      - in: path
+        name: court_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Court.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedCourt'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedCourt'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedCourt'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Court'
+          description: ''
+    delete:
+      operationId: api_v1_courts_destroy
+      parameters:
+      - in: path
+        name: court_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Court.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/organizations/:
+    get:
+      operationId: api_v1_organizations_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - in: query
+        name: is_root
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: org_level
+        schema:
+          type: integer
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: parent_organization
+        schema:
+          type: string
+          format: uuid
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedOrganizationList'
+          description: ''
+    post:
+      operationId: api_v1_organizations_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+  /api/v1/organizations/{organization_id}/:
+    get:
+      operationId: api_v1_organizations_retrieve
+      parameters:
+      - in: path
+        name: organization_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Organization.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    put:
+      operationId: api_v1_organizations_update
+      parameters:
+      - in: path
+        name: organization_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Organization.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Organization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Organization'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    patch:
+      operationId: api_v1_organizations_partial_update
+      parameters:
+      - in: path
+        name: organization_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Organization.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedOrganization'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+    delete:
+      operationId: api_v1_organizations_destroy
+      parameters:
+      - in: path
+        name: organization_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Organization.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/organizations/{organization_id}/sub-organizations/:
+    get:
+      operationId: api_v1_organizations_sub_organizations_retrieve
+      parameters:
+      - in: path
+        name: organization_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Organization.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+  /api/v1/organizations/root/:
+    get:
+      operationId: api_v1_organizations_root_retrieve
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+          description: ''
+  /api/v1/overrides/:
+    get:
+      operationId: api_v1_overrides_list
+      parameters:
+      - in: query
+        name: effect
+        schema:
+          type: string
+          enum:
+          - ALLOW
+          - DENY
+        description: |-
+          * `ALLOW` - Allow
+          * `DENY` - Deny
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: permission_code
+        schema:
+          type: string
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: user
+        schema:
+          type: string
+          format: uuid
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPermissionOverrideList'
+          description: ''
+    post:
+      operationId: api_v1_overrides_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionOverride'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PermissionOverride'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PermissionOverride'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionOverride'
+          description: ''
+  /api/v1/overrides/{override_id}/:
+    get:
+      operationId: api_v1_overrides_retrieve
+      parameters:
+      - in: path
+        name: override_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this permission override.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionOverride'
+          description: ''
+    put:
+      operationId: api_v1_overrides_update
+      parameters:
+      - in: path
+        name: override_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this permission override.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PermissionOverride'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PermissionOverride'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PermissionOverride'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionOverride'
+          description: ''
+    patch:
+      operationId: api_v1_overrides_partial_update
+      parameters:
+      - in: path
+        name: override_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this permission override.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPermissionOverride'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPermissionOverride'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPermissionOverride'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PermissionOverride'
+          description: ''
+    delete:
+      operationId: api_v1_overrides_destroy
+      parameters:
+      - in: path
+        name: override_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this permission override.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/permissions/:
+    get:
+      operationId: api_v1_permissions_list
+      parameters:
+      - in: query
+        name: module
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPermissionList'
+          description: ''
+    post:
+      operationId: api_v1_permissions_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Permission'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Permission'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Permission'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+          description: ''
+  /api/v1/permissions/{permission_id}/:
+    get:
+      operationId: api_v1_permissions_retrieve
+      parameters:
+      - in: path
+        name: permission_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Permission.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+          description: ''
+    put:
+      operationId: api_v1_permissions_update
+      parameters:
+      - in: path
+        name: permission_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Permission.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Permission'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Permission'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Permission'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+          description: ''
+    patch:
+      operationId: api_v1_permissions_partial_update
+      parameters:
+      - in: path
+        name: permission_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Permission.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPermission'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPermission'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPermission'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Permission'
+          description: ''
+    delete:
+      operationId: api_v1_permissions_destroy
+      parameters:
+      - in: path
+        name: permission_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Permission.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/police-stations/:
+    get:
+      operationId: api_v1_police_stations_list
+      parameters:
+      - in: query
+        name: district
+        schema:
+          type: string
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPoliceStationList'
+          description: ''
+    post:
+      operationId: api_v1_police_stations_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoliceStation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PoliceStation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PoliceStation'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliceStation'
+          description: ''
+  /api/v1/police-stations/{police_station_id}/:
+    get:
+      operationId: api_v1_police_stations_retrieve
+      parameters:
+      - in: path
+        name: police_station_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Police Station.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliceStation'
+          description: ''
+    put:
+      operationId: api_v1_police_stations_update
+      parameters:
+      - in: path
+        name: police_station_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Police Station.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PoliceStation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PoliceStation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PoliceStation'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliceStation'
+          description: ''
+    patch:
+      operationId: api_v1_police_stations_partial_update
+      parameters:
+      - in: path
+        name: police_station_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Police Station.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedPoliceStation'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedPoliceStation'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedPoliceStation'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliceStation'
+          description: ''
+    delete:
+      operationId: api_v1_police_stations_destroy
+      parameters:
+      - in: path
+        name: police_station_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Police Station.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/ranks/:
+    get:
+      operationId: api_v1_ranks_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRankList'
+          description: ''
+    post:
+      operationId: api_v1_ranks_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rank'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Rank'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Rank'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rank'
+          description: ''
+  /api/v1/ranks/{rank_id}/:
+    get:
+      operationId: api_v1_ranks_retrieve
+      parameters:
+      - in: path
+        name: rank_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Rank.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rank'
+          description: ''
+    put:
+      operationId: api_v1_ranks_update
+      parameters:
+      - in: path
+        name: rank_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Rank.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rank'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Rank'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Rank'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rank'
+          description: ''
+    patch:
+      operationId: api_v1_ranks_partial_update
+      parameters:
+      - in: path
+        name: rank_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Rank.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRank'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRank'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRank'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rank'
+          description: ''
+    delete:
+      operationId: api_v1_ranks_destroy
+      parameters:
+      - in: path
+        name: rank_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Rank.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/roles/:
+    get:
+      operationId: api_v1_roles_list
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRoleList'
+          description: ''
+    post:
+      operationId: api_v1_roles_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Role'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Role'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+  /api/v1/roles/{role_id}/:
+    get:
+      operationId: api_v1_roles_retrieve
+      parameters:
+      - in: path
+        name: role_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Role.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+    put:
+      operationId: api_v1_roles_update
+      parameters:
+      - in: path
+        name: role_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Role.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Role'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Role'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Role'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+    patch:
+      operationId: api_v1_roles_partial_update
+      parameters:
+      - in: path
+        name: role_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Role.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRole'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+          description: ''
+    delete:
+      operationId: api_v1_roles_destroy
+      parameters:
+      - in: path
+        name: role_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this Role.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/users/:
+    get:
+      operationId: api_v1_users_list
+      parameters:
+      - in: query
+        name: is_active
+        schema:
+          type: boolean
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: organization
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: profile_status
+        schema:
+          type: string
+          enum:
+          - ACTIVE
+          - ARCHIVED
+          - INACTIVE
+          - ON_LEAVE
+          - SUSPENDED
+        description: |-
+          * `ACTIVE` - Active
+          * `INACTIVE` - Inactive
+          * `SUSPENDED` - Suspended
+          * `ON_LEAVE` - On Leave
+          * `ARCHIVED` - Archived
+      - in: query
+        name: rank
+        schema:
+          type: string
+          format: uuid
+      - in: query
+        name: role
+        schema:
+          type: string
+          format: uuid
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserList'
+          description: ''
+    post:
+      operationId: api_v1_users_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/{user_id}/:
+    get:
+      operationId: api_v1_users_retrieve
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this User.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    put:
+      operationId: api_v1_users_update
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this User.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: api_v1_users_partial_update
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this User.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUser'
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    delete:
+      operationId: api_v1_users_destroy
+      parameters:
+      - in: path
+        name: user_id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this User.
+        required: true
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/users/change-password/:
+    post:
+      operationId: api_v1_users_change_password_create
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/User'
+        required: true
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/v1/users/me/:
+    get:
+      operationId: api_v1_users_me_retrieve
+      tags:
+      - api
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /health/:
+    get:
+      operationId: health_retrieve
+      description: Production health check verifying database connectivity and service
+        status.
+      summary: Health check endpoint
+      tags:
+      - health
+      security:
+      - jwtAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+components:
+  schemas:
+    Appointment:
+      type: object
+      properties:
+        appointment_id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          maxLength: 150
+        appointment_code:
+          type: string
+          nullable: true
+          maxLength: 50
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - appointment_id
+      - created_at
+      - title
+    Case:
+      type: object
+      properties:
+        case_id:
+          type: string
+          format: uuid
+          readOnly: true
+        case_number:
+          type: string
+          maxLength: 100
+        case_title:
+          type: string
+          maxLength: 500
+        court:
+          type: string
+          format: uuid
+        court_details:
+          allOf:
+          - $ref: '#/components/schemas/Court'
+          readOnly: true
+        category:
+          type: string
+          format: uuid
+        category_details:
+          allOf:
+          - $ref: '#/components/schemas/CaseCategory'
+          readOnly: true
+        managing_organization:
+          type: string
+          format: uuid
+        managing_organization_details:
+          allOf:
+          - $ref: '#/components/schemas/Organization'
+          readOnly: true
+        assigned_case_officer:
+          type: string
+          format: uuid
+          nullable: true
+        assigned_case_officer_details:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        institution_number:
+          type: string
+          nullable: true
+          maxLength: 100
+        institution_date:
+          type: string
+          format: date
+        police_station:
+          type: string
+          format: uuid
+          nullable: true
+        police_station_details:
+          allOf:
+          - $ref: '#/components/schemas/PoliceStation'
+          readOnly: true
+        fir_number:
+          type: string
+          nullable: true
+          maxLength: 50
+        fir_year:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        offence_sections:
+          type: string
+          nullable: true
+          maxLength: 255
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        decision_date:
+          type: string
+          format: date
+          nullable: true
+        parties:
+          type: array
+          items:
+            $ref: '#/components/schemas/CaseParty'
+          readOnly: true
+        proceedings:
+          type: array
+          items:
+            $ref: '#/components/schemas/CaseProceeding'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - assigned_case_officer_details
+      - case_id
+      - case_number
+      - case_title
+      - category
+      - category_details
+      - court
+      - court_details
+      - created_at
+      - institution_date
+      - managing_organization
+      - managing_organization_details
+      - parties
+      - police_station_details
+      - proceedings
+      - updated_at
+    CaseCategory:
+      type: object
+      properties:
+        category_id:
+          type: string
+          format: uuid
+          readOnly: true
+        nature:
+          $ref: '#/components/schemas/NatureEnum'
+        name:
+          type: string
+          maxLength: 150
+        short_code:
+          type: string
+          nullable: true
+          maxLength: 50
+      required:
+      - category_id
+      - name
+      - nature
+    CaseParty:
+      type: object
+      properties:
+        party_id:
+          type: string
+          format: uuid
+          readOnly: true
+        case:
+          type: string
+          format: uuid
+        party_side:
+          $ref: '#/components/schemas/PartySideEnum'
+        party_name:
+          type: string
+          maxLength: 255
+        is_primary_party:
+          type: boolean
+        counsel_name:
+          type: string
+          nullable: true
+          maxLength: 255
+        cnic:
+          type: string
+          nullable: true
+          maxLength: 20
+        contact_number:
+          type: string
+          nullable: true
+          maxLength: 50
+      required:
+      - case
+      - party_id
+      - party_name
+      - party_side
+    CaseProceeding:
+      type: object
+      properties:
+        proceeding_id:
+          type: string
+          format: uuid
+          readOnly: true
+        case:
+          type: string
+          format: uuid
+        court:
+          type: string
+          format: uuid
+        court_details:
+          allOf:
+          - $ref: '#/components/schemas/Court'
+          readOnly: true
+        recorded_by:
+          type: string
+          format: uuid
+          nullable: true
+        recorded_by_details:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        sr_no:
+          type: integer
+        proceeding_date:
+          type: string
+          format: date
+        stage:
+          type: string
+          maxLength: 150
+        today_action:
+          type: string
+          nullable: true
+          maxLength: 255
+        short_order:
+          type: string
+          nullable: true
+        is_case_decided:
+          type: boolean
+        next_proceeding_date:
+          type: string
+          format: date
+          nullable: true
+        next_stage_purpose:
+          type: string
+          nullable: true
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - case
+      - court
+      - court_details
+      - created_at
+      - proceeding_date
+      - proceeding_id
+      - recorded_by_details
+      - stage
+    CauseList:
+      type: object
+      properties:
+        cause_list_id:
+          type: string
+          format: uuid
+          readOnly: true
+        court:
+          type: string
+          format: uuid
+        court_details:
+          allOf:
+          - $ref: '#/components/schemas/Court'
+          readOnly: true
+        cause_list_date:
+          type: string
+          format: date
+        day_of_week:
+          type: string
+          maxLength: 30
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CauseListItem'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - cause_list_date
+      - cause_list_id
+      - court
+      - court_details
+      - created_at
+      - day_of_week
+      - items
+    CauseListItem:
+      type: object
+      properties:
+        item_id:
+          type: string
+          format: uuid
+          readOnly: true
+        cause_list:
+          type: string
+          format: uuid
+        case:
+          type: string
+          format: uuid
+        case_details:
+          allOf:
+          - $ref: '#/components/schemas/Case'
+          readOnly: true
+        proceeding:
+          type: string
+          format: uuid
+        proceeding_details:
+          allOf:
+          - $ref: '#/components/schemas/CaseProceeding'
+          readOnly: true
+        roster_sr_no:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        category_heading:
+          type: string
+          maxLength: 150
+      required:
+      - case
+      - case_details
+      - category_heading
+      - cause_list
+      - item_id
+      - proceeding
+      - proceeding_details
+      - roster_sr_no
+    Court:
+      type: object
+      properties:
+        court_id:
+          type: string
+          format: uuid
+          readOnly: true
+        district:
+          type: string
+          maxLength: 100
+        court_name:
+          type: string
+          maxLength: 255
+        presiding_officer:
+          type: string
+          maxLength: 255
+        designation:
+          type: string
+          maxLength: 150
+        court_room_no:
+          type: string
+          nullable: true
+          maxLength: 50
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - court_id
+      - court_name
+      - created_at
+      - designation
+      - presiding_officer
+    EffectEnum:
+      enum:
+      - ALLOW
+      - DENY
+      type: string
+      description: |-
+        * `ALLOW` - Allow
+        * `DENY` - Deny
+    NatureEnum:
+      enum:
+      - CIVIL
+      - CRIMINAL
+      type: string
+      description: |-
+        * `CIVIL` - Civil
+        * `CRIMINAL` - Criminal
+    Organization:
+      type: object
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+          readOnly: true
+        parent_organization:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          maxLength: 150
+        code:
+          type: string
+          maxLength: 50
+        org_level:
+          type: integer
+          readOnly: true
+        is_root:
+          type: boolean
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        sub_organizations_count:
+          type: integer
+          readOnly: true
+      required:
+      - code
+      - created_at
+      - is_root
+      - name
+      - org_level
+      - organization_id
+      - sub_organizations_count
+    PaginatedAppointmentList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Appointment'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedCaseCategoryList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CaseCategory'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedCaseList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Case'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedCasePartyList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CaseParty'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedCaseProceedingList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CaseProceeding'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedCauseListItemList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CauseListItem'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedCauseListList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/CauseList'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedCourtList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Court'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedOrganizationList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Organization'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedPermissionList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedPermissionOverrideList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PermissionOverride'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedPoliceStationList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/PoliceStation'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedRankList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rank'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedRoleList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PaginatedUserList:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        count:
+          type: integer
+          example: 123
+        total_pages:
+          type: integer
+          example: 7
+        current_page:
+          type: integer
+          example: 1
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: null
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+      required:
+      - status
+      - count
+      - total_pages
+      - current_page
+      - results
+    PartySideEnum:
+      enum:
+      - PETITIONER
+      - RESPONDENT
+      - STATE
+      type: string
+      description: |-
+        * `PETITIONER` - Petitioner / Appellant
+        * `RESPONDENT` - Respondent / Defendant
+        * `STATE` - The State / Prosecution
+    PatchedAppointment:
+      type: object
+      properties:
+        appointment_id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          maxLength: 150
+        appointment_code:
+          type: string
+          nullable: true
+          maxLength: 50
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCase:
+      type: object
+      properties:
+        case_id:
+          type: string
+          format: uuid
+          readOnly: true
+        case_number:
+          type: string
+          maxLength: 100
+        case_title:
+          type: string
+          maxLength: 500
+        court:
+          type: string
+          format: uuid
+        court_details:
+          allOf:
+          - $ref: '#/components/schemas/Court'
+          readOnly: true
+        category:
+          type: string
+          format: uuid
+        category_details:
+          allOf:
+          - $ref: '#/components/schemas/CaseCategory'
+          readOnly: true
+        managing_organization:
+          type: string
+          format: uuid
+        managing_organization_details:
+          allOf:
+          - $ref: '#/components/schemas/Organization'
+          readOnly: true
+        assigned_case_officer:
+          type: string
+          format: uuid
+          nullable: true
+        assigned_case_officer_details:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        institution_number:
+          type: string
+          nullable: true
+          maxLength: 100
+        institution_date:
+          type: string
+          format: date
+        police_station:
+          type: string
+          format: uuid
+          nullable: true
+        police_station_details:
+          allOf:
+          - $ref: '#/components/schemas/PoliceStation'
+          readOnly: true
+        fir_number:
+          type: string
+          nullable: true
+          maxLength: 50
+        fir_year:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+          nullable: true
+        offence_sections:
+          type: string
+          nullable: true
+          maxLength: 255
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        decision_date:
+          type: string
+          format: date
+          nullable: true
+        parties:
+          type: array
+          items:
+            $ref: '#/components/schemas/CaseParty'
+          readOnly: true
+        proceedings:
+          type: array
+          items:
+            $ref: '#/components/schemas/CaseProceeding'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCaseCategory:
+      type: object
+      properties:
+        category_id:
+          type: string
+          format: uuid
+          readOnly: true
+        nature:
+          $ref: '#/components/schemas/NatureEnum'
+        name:
+          type: string
+          maxLength: 150
+        short_code:
+          type: string
+          nullable: true
+          maxLength: 50
+    PatchedCaseParty:
+      type: object
+      properties:
+        party_id:
+          type: string
+          format: uuid
+          readOnly: true
+        case:
+          type: string
+          format: uuid
+        party_side:
+          $ref: '#/components/schemas/PartySideEnum'
+        party_name:
+          type: string
+          maxLength: 255
+        is_primary_party:
+          type: boolean
+        counsel_name:
+          type: string
+          nullable: true
+          maxLength: 255
+        cnic:
+          type: string
+          nullable: true
+          maxLength: 20
+        contact_number:
+          type: string
+          nullable: true
+          maxLength: 50
+    PatchedCaseProceeding:
+      type: object
+      properties:
+        proceeding_id:
+          type: string
+          format: uuid
+          readOnly: true
+        case:
+          type: string
+          format: uuid
+        court:
+          type: string
+          format: uuid
+        court_details:
+          allOf:
+          - $ref: '#/components/schemas/Court'
+          readOnly: true
+        recorded_by:
+          type: string
+          format: uuid
+          nullable: true
+        recorded_by_details:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        sr_no:
+          type: integer
+        proceeding_date:
+          type: string
+          format: date
+        stage:
+          type: string
+          maxLength: 150
+        today_action:
+          type: string
+          nullable: true
+          maxLength: 255
+        short_order:
+          type: string
+          nullable: true
+        is_case_decided:
+          type: boolean
+        next_proceeding_date:
+          type: string
+          format: date
+          nullable: true
+        next_stage_purpose:
+          type: string
+          nullable: true
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCauseList:
+      type: object
+      properties:
+        cause_list_id:
+          type: string
+          format: uuid
+          readOnly: true
+        court:
+          type: string
+          format: uuid
+        court_details:
+          allOf:
+          - $ref: '#/components/schemas/Court'
+          readOnly: true
+        cause_list_date:
+          type: string
+          format: date
+        day_of_week:
+          type: string
+          maxLength: 30
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CauseListItem'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedCauseListItem:
+      type: object
+      properties:
+        item_id:
+          type: string
+          format: uuid
+          readOnly: true
+        cause_list:
+          type: string
+          format: uuid
+        case:
+          type: string
+          format: uuid
+        case_details:
+          allOf:
+          - $ref: '#/components/schemas/Case'
+          readOnly: true
+        proceeding:
+          type: string
+          format: uuid
+        proceeding_details:
+          allOf:
+          - $ref: '#/components/schemas/CaseProceeding'
+          readOnly: true
+        roster_sr_no:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        category_heading:
+          type: string
+          maxLength: 150
+    PatchedCourt:
+      type: object
+      properties:
+        court_id:
+          type: string
+          format: uuid
+          readOnly: true
+        district:
+          type: string
+          maxLength: 100
+        court_name:
+          type: string
+          maxLength: 255
+        presiding_officer:
+          type: string
+          maxLength: 255
+        designation:
+          type: string
+          maxLength: 150
+        court_room_no:
+          type: string
+          nullable: true
+          maxLength: 50
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedOrganization:
+      type: object
+      properties:
+        organization_id:
+          type: string
+          format: uuid
+          readOnly: true
+        parent_organization:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+          maxLength: 150
+        code:
+          type: string
+          maxLength: 50
+        org_level:
+          type: integer
+          readOnly: true
+        is_root:
+          type: boolean
+          readOnly: true
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        sub_organizations_count:
+          type: integer
+          readOnly: true
+    PatchedPermission:
+      type: object
+      properties:
+        permission_id:
+          type: string
+          format: uuid
+          readOnly: true
+        code:
+          type: string
+          maxLength: 100
+        module:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedPermissionOverride:
+      type: object
+      properties:
+        override_id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        permission_code:
+          type: string
+          maxLength: 100
+        effect:
+          $ref: '#/components/schemas/EffectEnum'
+        reason:
+          type: string
+        granted_by:
+          type: string
+          maxLength: 200
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedPoliceStation:
+      type: object
+      properties:
+        police_station_id:
+          type: string
+          format: uuid
+          readOnly: true
+        district:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          maxLength: 150
+        code:
+          type: string
+          nullable: true
+          maxLength: 50
+    PatchedRank:
+      type: object
+      properties:
+        rank_id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          maxLength: 100
+        abbreviation:
+          type: string
+          nullable: true
+          maxLength: 20
+        seniority_index:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedRole:
+      type: object
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+          readOnly: true
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+            writeOnly: true
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedUser:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          readOnly: true
+        username:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          maxLength: 200
+        email:
+          nullable: true
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        profile_status:
+          $ref: '#/components/schemas/ProfileStatusEnum'
+        svc_number:
+          type: string
+          maxLength: 100
+        rank:
+          type: string
+          format: uuid
+          nullable: true
+        rank_details:
+          allOf:
+          - $ref: '#/components/schemas/Rank'
+          readOnly: true
+        appointment:
+          type: string
+          format: uuid
+          nullable: true
+        appointment_details:
+          allOf:
+          - $ref: '#/components/schemas/Appointment'
+          readOnly: true
+        organization:
+          type: string
+          format: uuid
+          nullable: true
+        organization_details:
+          allOf:
+          - $ref: '#/components/schemas/Organization'
+          readOnly: true
+        role:
+          type: string
+          format: uuid
+          nullable: true
+        role_details:
+          allOf:
+          - $ref: '#/components/schemas/Role'
+          readOnly: true
+        profile_image:
+          type: string
+          nullable: true
+          maxLength: 500
+        is_staff:
+          type: boolean
+        is_active:
+          type: boolean
+        password:
+          type: string
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    Permission:
+      type: object
+      properties:
+        permission_id:
+          type: string
+          format: uuid
+          readOnly: true
+        code:
+          type: string
+          maxLength: 100
+        module:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - code
+      - created_at
+      - module
+      - permission_id
+    PermissionOverride:
+      type: object
+      properties:
+        override_id:
+          type: string
+          format: uuid
+          readOnly: true
+        user:
+          type: string
+          format: uuid
+        permission_code:
+          type: string
+          maxLength: 100
+        effect:
+          $ref: '#/components/schemas/EffectEnum'
+        reason:
+          type: string
+        granted_by:
+          type: string
+          maxLength: 200
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - effect
+      - granted_by
+      - override_id
+      - permission_code
+      - reason
+      - user
+    PoliceStation:
+      type: object
+      properties:
+        police_station_id:
+          type: string
+          format: uuid
+          readOnly: true
+        district:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          maxLength: 150
+        code:
+          type: string
+          nullable: true
+          maxLength: 50
+      required:
+      - name
+      - police_station_id
+    ProfileStatusEnum:
+      enum:
+      - ACTIVE
+      - INACTIVE
+      - SUSPENDED
+      - ON_LEAVE
+      - ARCHIVED
+      type: string
+      description: |-
+        * `ACTIVE` - Active
+        * `INACTIVE` - Inactive
+        * `SUSPENDED` - Suspended
+        * `ON_LEAVE` - On Leave
+        * `ARCHIVED` - Archived
+    Rank:
+      type: object
+      properties:
+        rank_id:
+          type: string
+          format: uuid
+          readOnly: true
+        title:
+          type: string
+          maxLength: 100
+        abbreviation:
+          type: string
+          nullable: true
+          maxLength: 20
+        seniority_index:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - rank_id
+      - title
+    Role:
+      type: object
+      properties:
+        role_id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+          readOnly: true
+        permission_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+            writeOnly: true
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - name
+      - permission_ids
+      - permissions
+      - role_id
+    StatusEnum:
+      enum:
+      - PENDING
+      - DECIDED
+      - DISPOSED
+      - TRANSFERRED
+      - CONSIGNED
+      type: string
+      description: |-
+        * `PENDING` - Pending
+        * `DECIDED` - Decided
+        * `DISPOSED` - Disposed
+        * `TRANSFERRED` - Transferred
+        * `CONSIGNED` - Consigned to Record
+    TokenObtainPair:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+          readOnly: true
+      required:
+      - access
+      - password
+      - refresh
+      - username
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          readOnly: true
+        username:
+          type: string
+          maxLength: 100
+        name:
+          type: string
+          maxLength: 200
+        email:
+          nullable: true
+          oneOf:
+          - type: string
+            format: email
+            maxLength: 254
+          - type: string
+            maxLength: 0
+        profile_status:
+          $ref: '#/components/schemas/ProfileStatusEnum'
+        svc_number:
+          type: string
+          maxLength: 100
+        rank:
+          type: string
+          format: uuid
+          nullable: true
+        rank_details:
+          allOf:
+          - $ref: '#/components/schemas/Rank'
+          readOnly: true
+        appointment:
+          type: string
+          format: uuid
+          nullable: true
+        appointment_details:
+          allOf:
+          - $ref: '#/components/schemas/Appointment'
+          readOnly: true
+        organization:
+          type: string
+          format: uuid
+          nullable: true
+        organization_details:
+          allOf:
+          - $ref: '#/components/schemas/Organization'
+          readOnly: true
+        role:
+          type: string
+          format: uuid
+          nullable: true
+        role_details:
+          allOf:
+          - $ref: '#/components/schemas/Role'
+          readOnly: true
+        profile_image:
+          type: string
+          nullable: true
+          maxLength: 500
+        is_staff:
+          type: boolean
+        is_active:
+          type: boolean
+        password:
+          type: string
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - appointment_details
+      - created_at
+      - name
+      - organization_details
+      - rank_details
+      - role_details
+      - svc_number
+      - updated_at
+      - user_id
+      - username
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

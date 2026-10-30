@@ -1,9 +1,14 @@
 from django.contrib import admin
 from django.urls import path, include
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
+from core.views import health_check
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+
+    # Health Check Endpoint
+    path('health/', health_check, name='health_check'),
+    path('api/health/', health_check, name='api_health_check'),
 
     # API v1 Modular Routes
     path('api/v1/', include('organizations.urls')),

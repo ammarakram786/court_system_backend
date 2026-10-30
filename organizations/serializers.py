@@ -1,8 +1,9 @@
 from rest_framework import serializers
+from drf_spectacular.utils import extend_schema_field
 from .models import Organization, Rank, Appointment
 
 class OrganizationSerializer(serializers.ModelSerializer):
-    sub_organizations_count = serializers.IntegerField(source='sub_organizations.count', read_only=True)
+    sub_organizations_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Organization
@@ -12,11 +13,18 @@ class OrganizationSerializer(serializers.ModelSerializer):
             'name',
             'code',
             'org_level',
+            'is_root',
             'is_active',
             'created_at',
             'sub_organizations_count'
         ]
-        read_only_fields = ['organization_id', 'org_level', 'created_at']
+        read_only_fields = ['organization_id', 'org_level', 'is_root', 'created_at']
+
+    @extend_schema_field(serializers.IntegerField())
+    def get_sub_organizations_count(self, obj) -> int:
+        if hasattr(obj, '_sub_organizations_count'):
+            return obj._sub_organizations_count
+        return obj.sub_organizations.count()
 
     def validate(self, attrs):
         # Additional custom validation if needed

@@ -1,11 +1,16 @@
 from rest_framework.permissions import BasePermission
 from django.utils import timezone
+from django.db.models import Q
 from .models import PermissionOverride
 
 class HasPermissionCode(BasePermission):
     """
     Checks if user's role has the required permission code or if an ALLOW/DENY override applies.
-    Usage: set `required_permission = 'cases.create_case'` on ViewSet.
+    Supports:
+      1) `required_permission = 'cases.manage'`
+      2) `action_permissions = {'list': 'cases.view', 'create': 'cases.create'}`
+    Superusers and staff always bypass.
+    If no permission is required for the view/action, allows authenticated access.
     """
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
@@ -13,33 +18,31 @@ class HasPermissionCode(BasePermission):
         if request.user.is_superuser or request.user.is_staff:
             return True
 
-        required_permission = getattr(view, 'required_permission', None)
+        # Check action-specific permission first, then view-level fallback
+        action_permissions = getattr(view, 'action_permissions', {})
+        action_name = getattr(view, 'action', None)
+        required_permission = action_permissions.get(action_name) or getattr(view, 'required_permission', None)
+
         if not required_permission:
             return True
 
-        # Check permission overrides
+        # Check permission overrides (DENY takes precedence over ALLOW)
         now = timezone.now()
-        override = PermissionOverride.objects.filter(
+        active_overrides = PermissionOverride.objects.filter(
             user=request.user,
             permission_code=required_permission
-        ).filter(models_expires_filter(now)).first() if hasattr(PermissionOverride, 'objects') else None
+        ).filter(
+            Q(expires_at__isnull=True) | Q(expires_at__gt=now)
+        )
 
-        # Simplified override check without complex Q if needed
-        overrides = PermissionOverride.objects.filter(user=request.user, permission_code=required_permission)
-        for ov in overrides:
-            if ov.expires_at and ov.expires_at < now:
-                continue
-            if ov.effect == PermissionOverride.Effect.DENY:
+        for override in active_overrides:
+            if override.effect == PermissionOverride.Effect.DENY:
                 return False
-            if ov.effect == PermissionOverride.Effect.ALLOW:
+            if override.effect == PermissionOverride.Effect.ALLOW:
                 return True
 
-        # Check role permissions
-        if request.user.role:
+        # Check user's assigned role permissions
+        if request.user.role_id:
             return request.user.role.permissions.filter(code=required_permission).exists()
 
         return False
-
-def models_expires_filter(now):
-    from django.db.models import Q
-    return Q(expires_at__isnull=True) | Q(expires_at__gt=now)

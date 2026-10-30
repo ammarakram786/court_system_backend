@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from .models import User, Role, Permission, PermissionOverride
 
-def user_create(*, username, name, svc_number, organization, role, password=None, **kwargs) -> User:
+def user_create(*, username, name, svc_number, organization=None, role=None, password=None, **kwargs) -> User:
     user = User.objects.create_user(
         username=username,
         name=name,

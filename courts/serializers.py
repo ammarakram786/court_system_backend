@@ -34,6 +34,7 @@ class CasePartySerializer(serializers.ModelSerializer):
 class CaseProceedingSerializer(serializers.ModelSerializer):
     recorded_by_details = UserSerializer(source='recorded_by', read_only=True)
     court_details = CourtSerializer(source='court', read_only=True)
+    sr_no = serializers.IntegerField(required=False)
 
     class Meta:
         model = CaseProceeding
@@ -55,6 +56,35 @@ class CaseProceedingSerializer(serializers.ModelSerializer):
             'created_at'
         ]
         read_only_fields = ['proceeding_id', 'created_at']
+        validators = []
+
+    def validate(self, attrs):
+        case = attrs.get('case') or (self.instance.case if self.instance else None)
+        if 'sr_no' not in attrs or attrs.get('sr_no') is None:
+            if case:
+                from django.db.models import Max
+                max_sr = CaseProceeding.objects.filter(case=case).aggregate(Max('sr_no'))['sr_no__max'] or 0
+                attrs['sr_no'] = max_sr + 1
+
+        sr_no = attrs.get('sr_no')
+        if case and sr_no:
+            qs = CaseProceeding.objects.filter(case=case, sr_no=sr_no)
+            if self.instance:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise serializers.ValidationError({
+                    'sr_no': f"Proceeding with serial number {sr_no} already exists for this case."
+                })
+        return super().validate(attrs)
+
+    def create(self, validated_data):
+        proceeding = super().create(validated_data)
+        if proceeding.is_case_decided:
+            case = proceeding.case
+            case.status = Case.CaseStatus.DECIDED
+            case.decision_date = proceeding.proceeding_date
+            case.save(update_fields=['status', 'decision_date', 'updated_at'])
+        return proceeding
 
 
 class CaseSerializer(serializers.ModelSerializer):

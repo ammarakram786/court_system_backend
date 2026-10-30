@@ -4,7 +4,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .models import User, Role, Permission, PermissionOverride
-from .serializers import UserSerializer, RoleSerializer, PermissionSerializer, PermissionOverrideSerializer
+from .serializers import (
+    UserSerializer, RoleSerializer, PermissionSerializer,
+    PermissionOverrideSerializer, ChangePasswordSerializer
+)
 from .selectors import user_list, role_list, permission_list
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -22,6 +25,14 @@ class UserViewSet(viewsets.ModelViewSet):
     def me(self, request):
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated], url_path='change-password')
+    def change_password(self, request):
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        request.user.set_password(serializer.validated_data['new_password'])
+        request.user.save()
+        return Response({'status': 'success', 'detail': 'Password updated successfully.'})
 
 
 class RoleViewSet(viewsets.ModelViewSet):

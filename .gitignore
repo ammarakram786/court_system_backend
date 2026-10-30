@@ -57,12 +57,8 @@ staticfiles/
 mediafiles/
 
 # Django migrations
-# (Note: Best practice in Django is to commit migration files to version control. 
-# If you are ignoring them, ensure your CI/CD or deployment runs `makemigrations` 
-# or handles state accordingly, or uncomment below:)
-# **/migrations/
-# !**/migrations/__init__.py
-**/migrations/
+# Migration files are tracked in version control; ignore bytecode caches
+**/migrations/__pycache__/
 
 # Virtual Environments
 venv/

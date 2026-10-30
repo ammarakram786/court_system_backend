@@ -46,7 +46,9 @@ class RolePermission(models.Model):
 
     class Meta:
         db_table = 'role_permissions'
-        unique_together = ('role', 'permission')
+        constraints = [
+            models.UniqueConstraint(fields=['role', 'permission'], name='unique_role_permission')
+        ]
 
 
 class UserManager(BaseUserManager):
@@ -67,6 +69,10 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
         extra_fields.setdefault('profile_status', 'ACTIVE')
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
         return self.create_user(username, svc_number, password, **extra_fields)
 
 
@@ -106,15 +112,20 @@ class User(AbstractBaseUser, PermissionsMixin):
     organization = models.ForeignKey(
         Organization,
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='users',
         db_column='organization_id'
     )
     role = models.ForeignKey(
         Role,
         on_delete=models.PROTECT,
+        null=True,
+        blank=True,
         related_name='users',
         db_column='role_id'
     )
+    email = models.EmailField(blank=True, null=True)
     profile_image = models.CharField(max_length=500, blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -157,4 +168,6 @@ class PermissionOverride(models.Model):
 
     class Meta:
         db_table = 'permission_overrides'
-        unique_together = ('user', 'permission_code')
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'permission_code'], name='unique_user_permission_override')
+        ]
