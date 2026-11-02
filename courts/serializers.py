@@ -1,7 +1,6 @@
 from rest_framework import serializers
 from .models import Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding, CauseList, CauseListItem
-from organizations.serializers import OrganizationSerializer
-from users.serializers import UserSerializer
+from accounts.serializers import OrganizationSerializer, UserSerializer
 
 class CourtSerializer(serializers.ModelSerializer):
     class Meta:

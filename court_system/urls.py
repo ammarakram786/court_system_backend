@@ -11,8 +11,7 @@ urlpatterns = [
     path('api/health/', health_check, name='api_health_check'),
 
     # API v1 Modular Routes
-    path('api/v1/', include('organizations.urls')),
-    path('api/v1/', include('users.urls')),
+    path('api/v1/', include('accounts.urls')),
     path('api/v1/', include('courts.urls')),
 
     # OpenAPI 3 Documentation

@@ -1,8 +1,7 @@
 import uuid
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from organizations.models import Organization
-from users.models import User
+from accounts.models import Organization, User
 
 class Court(models.Model):
     court_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)

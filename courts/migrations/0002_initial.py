@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('courts', '0001_initial'),
-        ('organizations', '0001_initial'),
+        ('accounts', '0001_initial'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='case',
             name='managing_organization',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='managed_cases', to='organizations.organization'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, related_name='managed_cases', to='accounts.organization'),
         ),
         migrations.AddField(
             model_name='case',

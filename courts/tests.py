@@ -9,8 +9,7 @@ from courts.services import (
 )
 from courts.models import Case, CaseParty, CaseProceeding, CauseList
 from courts.selectors import case_list
-from organizations.services import organization_create
-from users.services import user_create, role_create
+from accounts.services import organization_create, user_create, role_create
 
 class CourtCaseTests(TestCase):
     def setUp(self):
@@ -81,7 +80,8 @@ class CourtAPITests(TestCase):
             name="Major Clerk",
             svc_number="SVC-444",
             organization=self.org,
-            role=self.role
+            role=self.role,
+            is_staff=True
         )
         self.court = court_create(court_name="High Court", presiding_officer="Chief Justice", designation="CJ")
         self.category = case_category_create(nature="CIVIL", name="Writ Petition", short_code="WP")

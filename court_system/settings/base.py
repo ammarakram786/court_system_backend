@@ -32,8 +32,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     'core.apps.CoreConfig',
-    'organizations.apps.OrganizationsConfig',
-    'users.apps.UsersConfig',
+    'accounts.apps.AccountsConfig',
     'courts.apps.CourtsConfig',
 ]
 
@@ -79,7 +78,7 @@ DATABASES = {
 }
 
 # Custom User Model
-AUTH_USER_MODEL = 'users.User'
+AUTH_USER_MODEL = 'accounts.User'
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
