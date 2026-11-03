@@ -56,9 +56,11 @@ media/
 staticfiles/
 mediafiles/
 
-# Django migrations
-# Migration files are tracked in version control; ignore bytecode caches
+# Migrations (Excluded from repo as per Django DRF Architect specification - handled by DevOps / server deployment)
+**/migrations/*.py
+!**/migrations/__init__.py
 **/migrations/__pycache__/
+
 
 # Virtual Environments
 venv/
