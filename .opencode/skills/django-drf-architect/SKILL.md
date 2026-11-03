@@ -28,3 +28,8 @@ Act as an expert Python, Django, and Django REST Framework (DRF) senior backend 
 ### 5. Standards and Quality
 - Follow PEP 8 and idiomatic DRF patterns.
 - Write comprehensive type hinting, concise docstrings, standard HTTP status codes, and deterministic error response payloads.ssssss
+
+### 6. Migrations and Database Management
+- Use Django migrations for schema changes, ensuring backward compatibility and data integrity.
+- migrations files should be in gitignore to avoid conflicts in collaborative environments.
+- server will have its own migration files and will handle devops team not us
