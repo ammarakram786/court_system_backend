@@ -1,5 +1,9 @@
 from rest_framework import serializers
-from .models import Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding, CauseList, CauseListItem
+from .models import (
+    Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding,
+    CauseList, CauseListItem, CaseMarkingHistory
+)
+from .permissions import can_user_work_on_case
 from accounts.serializers import OrganizationSerializer, UserSerializer
 
 class CourtSerializer(serializers.ModelSerializer):
@@ -91,9 +95,15 @@ class CaseSerializer(serializers.ModelSerializer):
     category_details = CaseCategorySerializer(source='category', read_only=True)
     managing_organization_details = OrganizationSerializer(source='managing_organization', read_only=True)
     assigned_case_officer_details = UserSerializer(source='assigned_case_officer', read_only=True)
+    marked_by_details = UserSerializer(source='marked_by', read_only=True)
     police_station_details = PoliceStationSerializer(source='police_station', read_only=True)
     parties = CasePartySerializer(many=True, read_only=True)
     proceedings = CaseProceedingSerializer(many=True, read_only=True)
+
+    can_work = serializers.SerializerMethodField()
+    can_mark = serializers.SerializerMethodField()
+    can_mark_back = serializers.SerializerMethodField()
+    work_access_type = serializers.SerializerMethodField()
 
     class Meta:
         model = Case
@@ -109,6 +119,10 @@ class CaseSerializer(serializers.ModelSerializer):
             'managing_organization_details',
             'assigned_case_officer',
             'assigned_case_officer_details',
+            'marked_by',
+            'marked_by_details',
+            'marked_at',
+            'marking_remarks',
             'institution_number',
             'institution_date',
             'police_station',
@@ -120,10 +134,97 @@ class CaseSerializer(serializers.ModelSerializer):
             'decision_date',
             'parties',
             'proceedings',
+            'can_work',
+            'can_mark',
+            'can_mark_back',
+            'work_access_type',
             'created_at',
             'updated_at'
         ]
-        read_only_fields = ['case_id', 'created_at', 'updated_at']
+        read_only_fields = ['case_id', 'marked_by', 'marked_at', 'marking_remarks', 'created_at', 'updated_at']
+
+    def get_can_work(self, obj) -> bool:
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        return can_user_work_on_case(request.user, obj)
+
+    def get_can_mark(self, obj) -> bool:
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return False
+        is_open = obj.status not in [Case.CaseStatus.DECIDED, Case.CaseStatus.DISPOSED, Case.CaseStatus.CONSIGNED]
+        return is_open and can_user_work_on_case(request.user, obj)
+
+    def get_can_mark_back(self, obj) -> bool:
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated or not obj.marked_by_id:
+            return False
+        return self.get_can_mark(obj) and obj.marked_by_id != request.user.user_id
+
+    def get_work_access_type(self, obj) -> str:
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            return "VIEW_ONLY"
+        user = request.user
+        if user.is_superuser or user.is_staff:
+            return "ADMIN"
+        if obj.assigned_case_officer_id == user.user_id:
+            return "ASSIGNED"
+        if (
+            obj.assigned_case_officer
+            and getattr(user, 'organization_id', None) is not None
+            and getattr(obj.assigned_case_officer, 'organization_id', None) is not None
+            and user.organization_id == obj.assigned_case_officer.organization_id
+            and getattr(user, 'appointment_id', None) is not None
+            and getattr(obj.assigned_case_officer, 'appointment_id', None) is not None
+            and user.appointment_id == obj.assigned_case_officer.appointment_id
+        ):
+            return "PEER"
+        return "VIEW_ONLY"
+
+
+class CaseMarkingHistorySerializer(serializers.ModelSerializer):
+    from_user_details = UserSerializer(source='from_user', read_only=True)
+    to_user_details = UserSerializer(source='to_user', read_only=True)
+
+    class Meta:
+        model = CaseMarkingHistory
+        fields = [
+            'history_id',
+            'case',
+            'from_user',
+            'from_user_details',
+            'to_user',
+            'to_user_details',
+            'action',
+            'remarks',
+            'created_at'
+        ]
+        read_only_fields = ['history_id', 'created_at']
+
+
+class CaseMarkSerializer(serializers.Serializer):
+    to_user_id = serializers.UUIDField(required=True)
+    remarks = serializers.CharField(required=False, allow_blank=True, default='')
+
+
+class CaseMarkBackSerializer(serializers.Serializer):
+    remarks = serializers.CharField(required=False, allow_blank=True, default='')
+
+
+class CaseTimelineEventSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    event_type = serializers.CharField()
+    title = serializers.CharField()
+    description = serializers.CharField(allow_blank=True, default='')
+    date = serializers.CharField()
+    timestamp = serializers.CharField()
+    actor = UserSerializer(read_only=True, required=False, allow_null=True)
+    target_user = UserSerializer(read_only=True, required=False, allow_null=True)
+    metadata = serializers.DictField(required=False)
+
+
 
 
 class CauseListItemSerializer(serializers.ModelSerializer):

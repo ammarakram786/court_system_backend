@@ -1,6 +1,11 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from .models import Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding, CauseList, CauseListItem
+from django.utils import timezone
+from accounts.models import User
+from .models import (
+    Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding,
+    CauseList, CauseListItem, CaseMarkingHistory
+)
 
 def court_create(*, district='Rawalpindi', court_name, presiding_officer, designation, court_room_no=None, is_active=True) -> Court:
     return Court.objects.create(
@@ -84,3 +89,56 @@ def cause_list_item_create(*, cause_list: CauseList, case: Case, proceeding: Cas
         roster_sr_no=roster_sr_no,
         category_heading=category_heading
     )
+
+
+@transaction.atomic
+def case_mark(*, case: Case, from_user: User, to_user: User, remarks: str = "") -> Case:
+    if case.status in [Case.CaseStatus.DECIDED, Case.CaseStatus.DISPOSED, Case.CaseStatus.CONSIGNED]:
+        raise ValidationError("Cannot mark a closed or decided case.")
+    if not to_user.is_active or getattr(to_user, 'profile_status', 'ACTIVE') != 'ACTIVE':
+        raise ValidationError("Target officer is not active.")
+    if to_user.user_id == case.assigned_case_officer_id:
+        raise ValidationError("Case is already marked to this officer.")
+
+    CaseMarkingHistory.objects.create(
+        case=case,
+        from_user=from_user,
+        to_user=to_user,
+        action=CaseMarkingHistory.Action.MARK,
+        remarks=remarks
+    )
+
+    case.marked_by = from_user
+    case.assigned_case_officer = to_user
+    case.marked_at = timezone.now()
+    case.marking_remarks = remarks
+    case.save(update_fields=['marked_by', 'assigned_case_officer', 'marked_at', 'marking_remarks', 'updated_at'])
+    return case
+
+
+@transaction.atomic
+def case_mark_back(*, case: Case, from_user: User, remarks: str = "") -> Case:
+    if not case.marked_by:
+        raise ValidationError("Cannot mark back: No previous marking officer found for this case.")
+    if case.status in [Case.CaseStatus.DECIDED, Case.CaseStatus.DISPOSED, Case.CaseStatus.CONSIGNED]:
+        raise ValidationError("Cannot mark back a closed or decided case.")
+
+    target_user = case.marked_by
+    if not target_user.is_active or getattr(target_user, 'profile_status', 'ACTIVE') != 'ACTIVE':
+        raise ValidationError(f"Cannot mark back: Officer {target_user.name} is no longer active.")
+
+    CaseMarkingHistory.objects.create(
+        case=case,
+        from_user=from_user,
+        to_user=target_user,
+        action=CaseMarkingHistory.Action.MARK_BACK,
+        remarks=remarks
+    )
+
+    case.assigned_case_officer = target_user
+    case.marked_by = from_user
+    case.marked_at = timezone.now()
+    case.marking_remarks = remarks
+    case.save(update_fields=['marked_by', 'assigned_case_officer', 'marked_at', 'marking_remarks', 'updated_at'])
+    return case
+

@@ -25,6 +25,8 @@ COURT_PERMISSIONS = [
     Permission(name='Update Case', code_name='case_update', module_name='Case', app_name='courts', description='User can update case'),
     Permission(name='Delete Case', code_name='case_delete', module_name='Case', app_name='courts', description='User can delete case'),
     Permission(name='Close Case', code_name='case_close', module_name='Case', app_name='courts', description='User can close case'),
+    Permission(name='Mark Case', code_name='case_mark', module_name='Case', app_name='courts', description='User can mark case to another officer'),
+    Permission(name='Mark Back Case', code_name='case_mark_back', module_name='Case', app_name='courts', description='User can mark case back'),
 
     # Case Party
     Permission(name='Create Case Party', code_name='case_party_create', module_name='CaseParty', app_name='courts', description='User can create case party'),

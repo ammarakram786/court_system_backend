@@ -2,16 +2,29 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
+from accounts.models import User
 from accounts.permissions import HasPermissionCode
-from .models import Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding, CauseList, CauseListItem
+from .models import (
+    Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding,
+    CauseList, CauseListItem, CaseMarkingHistory
+)
 from .serializers import (
     CourtSerializer, PoliceStationSerializer, CaseCategorySerializer,
     CaseSerializer, CasePartySerializer, CaseProceedingSerializer,
-    CauseListSerializer, CauseListItemSerializer
+    CauseListSerializer, CauseListItemSerializer,
+    CaseMarkingHistorySerializer, CaseMarkSerializer, CaseMarkBackSerializer,
+    CaseTimelineEventSerializer
 )
-from .selectors import court_list, police_station_list, case_category_list, case_list, cause_list_queryset
+from .selectors import (
+    court_list, police_station_list, case_category_list,
+    case_list, cause_list_queryset, case_marking_history_list,
+    case_timeline
+)
+from .services import case_mark, case_mark_back
+from .permissions import CanWorkOnCaseOrReadOnly, can_user_work_on_case
 from .filters import CaseFilter, CaseProceedingFilter
 
 
@@ -82,7 +95,7 @@ class CaseCategoryViewSet(viewsets.ModelViewSet):
 
 
 class CaseViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, HasPermissionCode]
+    permission_classes = [IsAuthenticated, HasPermissionCode, CanWorkOnCaseOrReadOnly]
     serializer_class = CaseSerializer
     queryset = Case.objects.all()
     filterset_class = CaseFilter
@@ -100,6 +113,10 @@ class CaseViewSet(viewsets.ModelViewSet):
         'proceedings': 'case_read',
         'parties': 'case_read',
         'close_case': 'case_close',
+        'mark': 'case_mark',
+        'mark_back': 'case_mark_back',
+        'marking_history': 'case_read',
+        'timeline': 'case_read',
     }
 
     def get_queryset(self):
@@ -161,11 +178,61 @@ class CaseViewSet(viewsets.ModelViewSet):
         case.status = new_status
         case.decision_date = decision_date
         case.save(update_fields=['status', 'decision_date', 'updated_at'])
-        return Response(CaseSerializer(case).data)
+        return Response(CaseSerializer(case, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'], url_path='mark')
+    def mark(self, request, pk=None):
+        case = self.get_object()
+        serializer = CaseMarkSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        to_user_id = serializer.validated_data['to_user_id']
+        remarks = serializer.validated_data.get('remarks', '')
+        try:
+            to_user = User.objects.get(pk=to_user_id)
+        except User.DoesNotExist:
+            return Response(
+                {'status': 'error', 'detail': f"Target officer with ID {to_user_id} not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        updated_case = case_mark(
+            case=case,
+            from_user=request.user,
+            to_user=to_user,
+            remarks=remarks
+        )
+        return Response(CaseSerializer(updated_case, context={'request': request}).data)
+
+    @action(detail=True, methods=['post'], url_path='mark-back')
+    def mark_back(self, request, pk=None):
+        case = self.get_object()
+        serializer = CaseMarkBackSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        remarks = serializer.validated_data.get('remarks', '')
+        updated_case = case_mark_back(
+            case=case,
+            from_user=request.user,
+            remarks=remarks
+        )
+        return Response(CaseSerializer(updated_case, context={'request': request}).data)
+
+    @action(detail=True, methods=['get'], url_path='marking-history')
+    def marking_history(self, request, pk=None):
+        case = self.get_object()
+        history = case_marking_history_list(case_id=case.case_id)
+        serializer = CaseMarkingHistorySerializer(history, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'], url_path='timeline')
+    def timeline(self, request, pk=None):
+        case = self.get_object()
+        order = request.query_params.get('order', 'desc')
+        events = case_timeline(case=case, order=order)
+        serializer = CaseTimelineEventSerializer(events, many=True)
+        return Response(serializer.data)
 
 
 class CasePartyViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, HasPermissionCode]
+    permission_classes = [IsAuthenticated, HasPermissionCode, CanWorkOnCaseOrReadOnly]
     serializer_class = CasePartySerializer
     queryset = CaseParty.objects.all()
     filterset_fields = ['case', 'party_side', 'is_primary_party']
@@ -182,9 +249,15 @@ class CasePartyViewSet(viewsets.ModelViewSet):
         'destroy': 'case_party_delete',
     }
 
+    def perform_create(self, serializer):
+        case = serializer.validated_data.get('case')
+        if case and not can_user_work_on_case(self.request.user, case):
+            raise PermissionDenied("You have view-only access to this case. Only the assigned officer or peers can add parties.")
+        serializer.save()
+
 
 class CaseProceedingViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated, HasPermissionCode]
+    permission_classes = [IsAuthenticated, HasPermissionCode, CanWorkOnCaseOrReadOnly]
     serializer_class = CaseProceedingSerializer
     queryset = CaseProceeding.objects.all()
     filterset_class = CaseProceedingFilter
@@ -202,6 +275,9 @@ class CaseProceedingViewSet(viewsets.ModelViewSet):
     }
 
     def perform_create(self, serializer):
+        case = serializer.validated_data.get('case')
+        if case and not can_user_work_on_case(self.request.user, case):
+            raise PermissionDenied("You have view-only access to this case. Only the assigned officer or peers can record proceedings.")
         kwargs = {}
         if not serializer.validated_data.get('recorded_by') and self.request.user.is_authenticated:
             kwargs['recorded_by'] = self.request.user

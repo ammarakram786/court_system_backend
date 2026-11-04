@@ -1,5 +1,17 @@
 from django.contrib import admin
-from .models import Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding, CauseList, CauseListItem
+from .models import (
+    Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding,
+    CauseList, CauseListItem, CaseMarkingHistory
+)
+
+class CaseMarkingHistoryInline(admin.TabularInline):
+    model = CaseMarkingHistory
+    extra = 0
+    readonly_fields = ('from_user', 'to_user', 'action', 'remarks', 'created_at')
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
 
 class CasePartyInline(admin.TabularInline):
     model = CaseParty
@@ -36,12 +48,20 @@ class CaseCategoryAdmin(admin.ModelAdmin):
 class CaseAdmin(admin.ModelAdmin):
     list_display = (
         'case_number', 'case_title', 'court', 'category',
-        'managing_organization', 'assigned_case_officer', 'status', 'institution_date'
+        'managing_organization', 'assigned_case_officer', 'marked_by', 'status', 'institution_date'
     )
     list_filter = ('status', 'court', 'category', 'managing_organization')
     search_fields = ('case_number', 'case_title', 'fir_number', 'offence_sections')
-    inlines = [CasePartyInline, CaseProceedingInline]
-    readonly_fields = ('created_at', 'updated_at')
+    inlines = [CasePartyInline, CaseProceedingInline, CaseMarkingHistoryInline]
+    readonly_fields = ('marked_at', 'created_at', 'updated_at')
+
+
+@admin.register(CaseMarkingHistory)
+class CaseMarkingHistoryAdmin(admin.ModelAdmin):
+    list_display = ('case', 'action', 'from_user', 'to_user', 'created_at')
+    list_filter = ('action', 'created_at')
+    search_fields = ('case__case_number', 'from_user__name', 'to_user__name', 'remarks')
+    readonly_fields = ('created_at',)
 
 
 @admin.register(CaseParty)
