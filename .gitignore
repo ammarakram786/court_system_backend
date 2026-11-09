@@ -9,6 +9,7 @@ staticfiles/
 .env
 venv/
 env/
+.env.production
 
 # Django migrations (untracked from git server as requested)
 **/migrations/*.py
