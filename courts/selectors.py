@@ -1,4 +1,5 @@
 from django.db.models import QuerySet, Prefetch
+from django.utils import timezone
 from .models import (
     Court, PoliceStation, CaseCategory, Case, CaseParty, CaseProceeding,
     CauseList, CauseListItem, CaseMarkingHistory
@@ -113,7 +114,7 @@ def case_timeline(*, case: Case, order: str = 'desc') -> list[dict]:
             'event_type': 'MARK_BACK' if is_back else 'MARK',
             'title': f"Marked back to {h.to_user.name}" if is_back else f"Marked to {h.to_user.name}",
             'description': h.remarks or '',
-            'date': str(h.created_at.date()),
+            'date': str(timezone.localdate(h.created_at)),
             'timestamp': h.created_at.isoformat(),
             'actor': h.from_user,
             'target_user': h.to_user,
@@ -169,8 +170,22 @@ def case_timeline(*, case: Case, order: str = 'desc') -> list[dict]:
             }
         })
 
+    event_order_rank = {
+        'INSTITUTION': 0,
+        'PROCEEDING': 1,
+        'MARK': 2,
+        'MARK_BACK': 2,
+        'DECISION': 3,
+    }
     reverse = (order.lower() == 'desc')
-    events.sort(key=lambda x: (x['date'], x['timestamp']), reverse=reverse)
+    events.sort(
+        key=lambda x: (
+            x['date'],
+            (event_order_rank.get(x['event_type'], 1) if not reverse else -event_order_rank.get(x['event_type'], 1)),
+            x['timestamp']
+        ),
+        reverse=reverse
+    )
     return events
 
 def cause_list_queryset() -> QuerySet[CauseList]:
