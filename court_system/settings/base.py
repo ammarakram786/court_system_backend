@@ -1,15 +1,24 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
+# Load environment variables from .env.production if it exists, otherwise fall back to .env
+env_file = BASE_DIR / '.env.production'
+if not env_file.exists():
+    env_file = BASE_DIR / '.env'
+load_dotenv(env_file)
+
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'django-insecure-court-system-secret-key-change-in-production')
 
-DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    host.strip() for host in os.getenv('DJANGO_ALLOWED_HOSTS', '*').split(',') if host.strip()
+]
 
 # Application definition
 DJANGO_APPS = [
@@ -69,18 +78,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'court_system.wsgi.application'
 
-# # Database
-# db_engine = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')
-# db_name = BASE_DIR / os.getenv('DB_NAME', 'db.sqlite3') if 'sqlite3' in db_engine else os.getenv('DB_NAME', 'court_system_db')
-
+# Database Configuration with PostgreSQL defaults
 DATABASES = {
     'default': {
-        'ENGINE': os.getenv('DB_ENGINE', ''),
-        'NAME': os.getenv('DB_NAME', ''),
-        'USER': os.getenv('DB_USER', ''),
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME', 'court_system_db'),
+        'USER': os.getenv('DB_USER', 'postgres'),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
-        'HOST': os.getenv('DB_HOST', ''),
-        'PORT': os.getenv('DB_PORT', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
