@@ -12,11 +12,22 @@ class RoleSerializer(serializers.ModelSerializer):
         write_only=True,
         source='permissions'
     )
+    users_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Role
-        fields = ['role_id', 'id', 'name', 'description', 'permissions', 'permission_ids', 'created_at', 'updated_at']
-        read_only_fields = ['role_id', 'id', 'created_at', 'updated_at']
+        fields = [
+            'role_id',
+            'id',
+            'name',
+            'description',
+            'permissions',
+            'permission_ids',
+            'users_count',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['role_id', 'id', 'users_count', 'created_at', 'updated_at']
 
 
 class RoleMinSerializer(serializers.ModelSerializer):

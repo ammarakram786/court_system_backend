@@ -15,11 +15,11 @@ def user_get(*, user_id) -> User:
 
 
 def role_list() -> QuerySet[Role]:
-    return Role.objects.prefetch_related('permissions').all()
+    return Role.objects.annotate(users_count=Count('users')).prefetch_related('permissions').order_by('name')
 
 
 def role_get(*, role_id) -> Role:
-    return Role.objects.prefetch_related('permissions').get(pk=role_id)
+    return Role.objects.annotate(users_count=Count('users')).prefetch_related('permissions').get(pk=role_id)
 
 
 def permission_list() -> QuerySet[Permission]:
