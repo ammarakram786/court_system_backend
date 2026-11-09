@@ -69,14 +69,14 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'court_system.wsgi.application'
 
-# Database
-db_engine = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')
-db_name = BASE_DIR / os.getenv('DB_NAME', 'db.sqlite3') if 'sqlite3' in db_engine else os.getenv('DB_NAME', 'court_system_db')
+# # Database
+# db_engine = os.getenv('DB_ENGINE', 'django.db.backends.sqlite3')
+# db_name = BASE_DIR / os.getenv('DB_NAME', 'db.sqlite3') if 'sqlite3' in db_engine else os.getenv('DB_NAME', 'court_system_db')
 
 DATABASES = {
     'default': {
-        'ENGINE': db_engine,
-        'NAME': db_name,
+        'ENGINE': os.getenv('DB_ENGINE', ''),
+        'NAME': os.getenv('DB_NAME', ''),
         'USER': os.getenv('DB_USER', ''),
         'PASSWORD': os.getenv('DB_PASSWORD', ''),
         'HOST': os.getenv('DB_HOST', ''),
