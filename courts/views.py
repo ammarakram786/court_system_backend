@@ -309,8 +309,19 @@ class CauseListViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='today')
     def today(self, request):
         today_date = timezone.localdate()
+        court_id = request.query_params.get('court')
         cause_lists = self.get_queryset().filter(cause_list_date=today_date)
-        serializer = self.get_serializer(cause_lists, many=True)
+        if court_id:
+            cause_lists = cause_lists.filter(court_id=court_id)
+
+        if request.query_params.get('all') == 'true':
+            serializer = self.get_serializer(cause_lists, many=True)
+            return Response(serializer.data)
+
+        first_list = cause_lists.first()
+        if not first_list:
+            return Response(None, status=status.HTTP_200_OK)
+        serializer = self.get_serializer(first_list)
         return Response(serializer.data)
 
 

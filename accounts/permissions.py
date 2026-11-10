@@ -6,6 +6,40 @@ from accounts.models import PermissionOverride
 from .permission import USER_PERMISSIONS, ACCOUNT_PERMISSIONS, PERMISSIONS
 
 
+def user_has_permission_code(user, code: str) -> bool:
+    """
+    Single source of truth for "does this user hold permission `code`?".
+
+    Resolution order:
+      1. Anonymous -> False; staff / superuser -> True
+      2. Active per-user override (DENY wins over ALLOW)
+      3. Permissions granted through the user's role
+    """
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser or user.is_staff:
+        return True
+
+    now = timezone.now()
+    active_overrides = PermissionOverride.objects.filter(
+        user=user,
+        permission_code=code
+    ).filter(
+        Q(expires_at__isnull=True) | Q(expires_at__gt=now)
+    )
+
+    for override in active_overrides:
+        if override.effect == PermissionOverride.Effect.DENY:
+            return False
+        if override.effect == PermissionOverride.Effect.ALLOW:
+            return True
+
+    if getattr(user, 'role_id', None):
+        return user.role.permissions.filter(code_name=code).exists()
+
+    return False
+
+
 class HasPermissionCode(BasePermission):
     """
     Checks if user's role has the required permission code or if an ALLOW/DENY override applies.
@@ -55,25 +89,4 @@ class HasPermissionCode(BasePermission):
         if not required_permission:
             return True
 
-        # Check permission overrides (DENY takes precedence over ALLOW)
-        now = timezone.now()
-        active_overrides = PermissionOverride.objects.filter(
-            user=request.user,
-            permission_code=required_permission
-        ).filter(
-            Q(expires_at__isnull=True) | Q(expires_at__gt=now)
-        )
-
-        for override in active_overrides:
-            if override.effect == PermissionOverride.Effect.DENY:
-                return False
-            if override.effect == PermissionOverride.Effect.ALLOW:
-                return True
-
-        # Check user's assigned role permissions
-        if getattr(request.user, 'role_id', None):
-            return request.user.role.permissions.filter(
-                Q(code_name=required_permission)
-            ).exists()
-
-        return False
+        return user_has_permission_code(request.user, required_permission)
